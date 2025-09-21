@@ -47,7 +47,7 @@ interface DisplaySettingsProviderProps {
 const DEFAULT_SETTINGS: DisplaySettings = {
   compactMode: false,
   refreshInterval: 120, // Default 2 minutes (keeping existing behavior)
-  dashboardName: 'GitHub Flow Dashboard'
+  dashboardName: 'GitHub Workflow Dashboard'
 };
 
 export function DisplaySettingsProvider({ children }: DisplaySettingsProviderProps) {

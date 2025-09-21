@@ -3,7 +3,7 @@
  * Provides encrypted localStorage with device fingerprinting
  */
 
-// Storage keys for the GitHub Flow Dashboard application
+// Storage keys for the GitHub Workflow Dashboard application
 export const STORAGE_KEYS = {
   GITHUB_TOKEN: 'github_flow_dashboard_token',
   GITHUB_USER_ID: 'github_flow_dashboard_user_id',

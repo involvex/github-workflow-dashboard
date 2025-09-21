@@ -273,7 +273,7 @@ export default function SettingsPage() {
                     id="dashboard-name"
                     value={dashboardNameInput}
                     onChange={(e) => setDashboardNameInput(e.target.value)}
-                    placeholder="GitHub Flow Dashboard"
+                    placeholder="GitHub Workflow Dashboard"
                     className="flex-1"
                   />
                   <Button

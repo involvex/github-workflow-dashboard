@@ -10,7 +10,7 @@ import { DisplaySettingsProvider } from "@/contexts/display-settings-context";
 // Removed Geist font imports for Docker build reliability
 
 export const metadata: Metadata = {
-  title: "GitHub Flow Dashboard",
+  title: "GitHub Workflow Dashboard",
   description: "Monitor GitHub Actions workflows across your repositories",
 };
 
