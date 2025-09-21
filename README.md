@@ -1,9 +1,38 @@
 
 # Github Workflow Dashboard
 
+Online demonstration
+
+https://github-workflow-dashboard.vercel.app
+
+All data stored on your browser.
+
 ## Introduction
 
-The Github Workflow Dashboard is a modern web application for visualizing, monitoring, and managing GitHub Actions workflows across multiple repositories and organizations. It provides a unified dashboard to track workflow status, recent runs, and repository health, making it easy for teams to stay on top of CI/CD activity.
+Github Workflow Dashboard is a web app for visualizing, monitoring, and managing GitHub Actions workflows across multiple repositories and organizations. It provides a unified dashboard to track workflow status, recent runs, and repository health, making it easy for teams to stay on top of CI/CD activity.
+
+### Main Features
+- View workflow status and history for multiple repositories
+- Monitor recent runs and repository health
+- Manage GitHub tokens and settings
+- Easy deployment options (npm, Docker, Vercel)
+
+### Screenshots
+
+**Main Page**
+
+![Main Page](./docs/main-page.png)
+
+**Settings Page**
+
+![Settings Page](./docs/settings.png)
+
+**Various Modes**
+
+Various filters and compact mode, mobile friendly
+
+![Different Modes](./docs/modes.png)
+
 
 ## Quick Start
 
