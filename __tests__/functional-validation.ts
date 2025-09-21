@@ -62,7 +62,7 @@ Object.defineProperty(global, 'window', {
 Date.prototype.getTimezoneOffset = () => -480;
 
 async function runFunctionalValidation() {
-  console.log('🚀 Starting functional validation of IFL Workflow Dashboard...\n');
+  console.log('🚀 Starting functional validation of Github Workflow Dashboard...\n');
 
   const results = {
     passed: 0,
@@ -246,7 +246,7 @@ async function runFunctionalValidation() {
   
   if (results.failed === 0) {
     console.log('\n🎉 All functional validation tests passed!');
-    console.log('💫 The IFL Workflow Dashboard token management system is fully operational.');
+    console.log('💫 The Github Workflow Dashboard token management system is fully operational.');
     console.log('🚀 Ready to proceed to the next development phase (Repository Selection Interface).');
   } else {
     console.log('\n⚠️ Some tests failed. Review the errors above.');

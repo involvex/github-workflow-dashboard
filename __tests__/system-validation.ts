@@ -108,7 +108,7 @@ async function validateSystem() {
   
   if (passedTests === totalTests) {
     console.log('\n🎉 System validation passed!');
-    console.log('💫 IFL Workflow Dashboard is ready for the next phase.');
+    console.log('💫 Github Workflow Dashboard is ready for the next phase.');
     console.log('🚀 Token management system is fully functional.');
     console.log('➡️  Ready to proceed to Task 4: Repository Selection Interface');
   } else {

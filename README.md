@@ -1,9 +1,9 @@
 
-# IFL Workflow Dashboard
+# Github Workflow Dashboard
 
 ## Introduction
 
-The IFL Workflow Dashboard is a modern web application for visualizing, monitoring, and managing GitHub Actions workflows across multiple repositories and organizations. It provides a unified dashboard to track workflow status, recent runs, and repository health, making it easy for teams to stay on top of CI/CD activity.
+The Github Workflow Dashboard is a modern web application for visualizing, monitoring, and managing GitHub Actions workflows across multiple repositories and organizations. It provides a unified dashboard to track workflow status, recent runs, and repository health, making it easy for teams to stay on top of CI/CD activity.
 
 ## Quick Start
 
@@ -47,5 +47,3 @@ docker-compose down
 ### 4. Deploy with Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%cheney-yan-ifl%2Fgithub-workflow-dashboard)
-
-https://github.com/cheney-yan-ifl/github-workflow-dashboard

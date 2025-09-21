@@ -186,7 +186,7 @@ async function runEndToEndTest() {
   
   if (results.failed === 0) {
     console.log('\n🎉 ALL TESTS PASSED! 🎉');
-    console.log('💫 IFL Workflow Dashboard token management system is FULLY OPERATIONAL');
+    console.log('💫 Github Workflow Dashboard token management system is FULLY OPERATIONAL');
     console.log('🔒 Secure storage working correctly');
     console.log('🔑 Token validation system functional');
     console.log('⚛️  React context integration complete');
