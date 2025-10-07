@@ -26,7 +26,12 @@ export interface GitHubWorkflow {
   id: number;
   name: string;
   path: string;
-  state: 'active' | 'deleted' | 'disabled_fork' | 'disabled_inactivity' | 'disabled_manually';
+  state:
+    | "active"
+    | "deleted"
+    | "disabled_fork"
+    | "disabled_inactivity"
+    | "disabled_manually";
   created_at: string;
   updated_at: string;
   url: string;
@@ -43,8 +48,16 @@ export interface GitHubWorkflowRun {
   display_title: string;
   run_number: number;
   event: string;
-  status: 'queued' | 'in_progress' | 'completed' | 'waiting' | 'requested';
-  conclusion: 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | null;
+  status: "queued" | "in_progress" | "completed" | "waiting" | "requested";
+  conclusion:
+    | "success"
+    | "failure"
+    | "neutral"
+    | "cancelled"
+    | "skipped"
+    | "timed_out"
+    | "action_required"
+    | null;
   workflow_id: number;
   url: string;
   html_url: string;

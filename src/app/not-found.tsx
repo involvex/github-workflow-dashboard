@@ -1,7 +1,13 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -14,7 +20,8 @@ export default function NotFound() {
             </div>
             <CardTitle className="text-2xl">Page Not Found</CardTitle>
             <CardDescription>
-              The page you&apos;re looking for doesn&apos;t exist or has been moved.
+              The page you&apos;re looking for doesn&apos;t exist or has been
+              moved.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -26,12 +33,10 @@ export default function NotFound() {
                 <li>• Check your URL spelling</li>
               </ul>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-2">
               <Link href="/" className="flex-1">
-                <Button className="w-full">
-                  Back to Dashboard
-                </Button>
+                <Button className="w-full">Back to Dashboard</Button>
               </Link>
               <Link href="/settings" className="flex-1">
                 <Button variant="outline" className="w-full">

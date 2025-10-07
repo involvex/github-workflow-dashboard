@@ -1,55 +1,75 @@
-'use client';
+"use client";
 
-import React, { useEffect, useCallback } from 'react';
-import { useRepositorySelection } from '@/contexts/repository-selection-context';
-import { useGitHubToken } from '@/contexts/github-token-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { XCircle, Search, X, Check, Loader2, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { RepositoryWithWorkflowStatus, WorkflowStatus } from '@/contexts/repository-selection-context';
+import React, { useEffect, useCallback } from "react";
+import { useRepositorySelection } from "@/contexts/repository-selection-context";
+import { useGitHubToken } from "@/contexts/github-token-context";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { XCircle, Search, X, Check, Loader2, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type {
+  RepositoryWithWorkflowStatus,
+  WorkflowStatus,
+} from "@/contexts/repository-selection-context";
 
 // Helper function to get workflow status icon and styling
-const getWorkflowStatusInfo = (status: WorkflowStatus, workflowCount?: number) => {
+const getWorkflowStatusInfo = (
+  status: WorkflowStatus,
+  workflowCount?: number,
+) => {
   switch (status) {
-    case 'unknown':
+    case "unknown":
       return {
         icon: <div className="w-4 h-4 bg-muted rounded-full animate-pulse" />,
-        text: 'Checking...',
-        className: 'text-muted-foreground',
-        selectable: false
+        text: "Checking...",
+        className: "text-muted-foreground",
+        selectable: false,
       };
-    case 'checking':
+    case "checking":
       return {
         icon: <Loader2 className="w-4 h-4 animate-spin text-primary" />,
-        text: 'Checking workflows...',
-        className: 'text-primary',
-        selectable: false
+        text: "Checking workflows...",
+        className: "text-primary",
+        selectable: false,
       };
-    case 'has-workflows':
+    case "has-workflows":
       return {
         icon: <Check className="w-4 h-4 text-green-500 dark:text-green-400" />,
-        text: workflowCount ? `${workflowCount} workflow${workflowCount === 1 ? '' : 's'}` : 'Has workflows',
-        className: 'text-green-600 dark:text-green-400',
-        selectable: true
+        text: workflowCount
+          ? `${workflowCount} workflow${workflowCount === 1 ? "" : "s"}`
+          : "Has workflows",
+        className: "text-green-600 dark:text-green-400",
+        selectable: true,
       };
-    case 'no-workflows':
+    case "no-workflows":
       return {
         icon: <AlertCircle className="w-4 h-4 text-muted-foreground" />,
-        text: 'No workflows',
-        className: 'text-muted-foreground',
-        selectable: false
+        text: "No workflows",
+        className: "text-muted-foreground",
+        selectable: true,
       };
-    case 'error':
+    case "error":
       return {
         icon: <AlertCircle className="w-4 h-4 text-destructive" />,
-        text: 'Check failed',
-        className: 'text-destructive',
-        selectable: false
+        text: "Check failed",
+        className: "text-destructive",
+        selectable: false,
       };
   }
 };
@@ -58,7 +78,9 @@ interface RepositorySelectionProps {
   onSelectionChange?: (repositories: RepositoryWithWorkflowStatus[]) => void;
 }
 
-export function RepositorySelection({ onSelectionChange }: RepositorySelectionProps) {
+export function RepositorySelection({
+  onSelectionChange,
+}: RepositorySelectionProps) {
   const { token, isValidated } = useGitHubToken();
   const {
     selectedRepositories,
@@ -77,7 +99,7 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
     setSelectedRepositories,
     clearSelection,
     setNameFilter,
-    clearFilter
+    clearFilter,
   } = useRepositorySelection();
 
   // Notify parent of selection changes
@@ -89,51 +111,87 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
 
   // Auto-fetch repositories when token becomes available
   useEffect(() => {
-    if (token && isValidated && availableRepositories.length === 0 && !isLoading && !error) {
-      console.log('🚀 Auto-triggering repository fetch...');
+    if (
+      token &&
+      isValidated &&
+      availableRepositories.length === 0 &&
+      !isLoading &&
+      !error
+    ) {
+      console.log("🚀 Auto-triggering repository fetch...");
       fetchRepositories();
     }
-  }, [token, isValidated, availableRepositories.length, isLoading, error, fetchRepositories]);
+  }, [
+    token,
+    isValidated,
+    availableRepositories.length,
+    isLoading,
+    error,
+    fetchRepositories,
+  ]);
 
-  const handleRepositoryToggle = useCallback((repository: RepositoryWithWorkflowStatus) => {
-    const statusInfo = getWorkflowStatusInfo(repository.workflowStatus, repository.workflowCount);
-    if (statusInfo.selectable) {
-      toggleRepository(repository);
-    }
-  }, [toggleRepository]);
+  const handleRepositoryToggle = useCallback(
+    (repository: RepositoryWithWorkflowStatus) => {
+      const statusInfo = getWorkflowStatusInfo(
+        repository.workflowStatus,
+        repository.workflowCount,
+      );
+      if (statusInfo.selectable) {
+        toggleRepository(repository);
+      }
+    },
+    [toggleRepository],
+  );
 
   const handleSelectAll = () => {
     // Only consider selectable repositories
-    const selectableRepos = filteredRepositories.filter(repo => 
-      getWorkflowStatusInfo(repo.workflowStatus, repo.workflowCount).selectable
+    const selectableRepos = filteredRepositories.filter(
+      (repo) =>
+        getWorkflowStatusInfo(repo.workflowStatus, repo.workflowCount)
+          .selectable,
     );
-    
-    const filteredSelectedCount = selectableRepos.filter(repo => 
-      selectedRepositories.some(selected => selected.id === repo.id)
+
+    const filteredSelectedCount = selectableRepos.filter((repo) =>
+      selectedRepositories.some((selected) => selected.id === repo.id),
     ).length;
-    
-    if (filteredSelectedCount === selectableRepos.length && selectableRepos.length > 0) {
+
+    if (
+      filteredSelectedCount === selectableRepos.length &&
+      selectableRepos.length > 0
+    ) {
       // Deselect all filtered repositories
-      const filteredIds = new Set(selectableRepos.map(repo => repo.id));
-      const remainingSelected = selectedRepositories.filter(repo => !filteredIds.has(repo.id));
+      const filteredIds = new Set(selectableRepos.map((repo) => repo.id));
+      const remainingSelected = selectedRepositories.filter(
+        (repo) => !filteredIds.has(repo.id),
+      );
       setSelectedRepositories(remainingSelected);
     } else {
       // Select all selectable filtered repositories that aren't already selected
-      const currentIds = new Set(selectedRepositories.map(repo => repo.id));
-      const newSelections = selectableRepos.filter(repo => !currentIds.has(repo.id));
+      const currentIds = new Set(selectedRepositories.map((repo) => repo.id));
+      const newSelections = selectableRepos.filter(
+        (repo) => !currentIds.has(repo.id),
+      );
       setSelectedRepositories([...selectedRepositories, ...newSelections]);
     }
   };
 
   const isRepositorySelected = (repository: RepositoryWithWorkflowStatus) => {
-    return selectedRepositories.some(selected => selected.id === repository.id);
+    return selectedRepositories.some(
+      (selected) => selected.id === repository.id,
+    );
   };
 
   // Sort repositories: selectable ones first, then non-selectable ones
   const sortedRepositories = [...filteredRepositories].sort((a, b) => {
-    const aSelectable = getWorkflowStatusInfo(a.workflowStatus, a.workflowCount).selectable;
-    const bSelectable = getWorkflowStatusInfo(b.workflowStatus, b.workflowCount).selectable;
-    
+    const aSelectable = getWorkflowStatusInfo(
+      a.workflowStatus,
+      a.workflowCount,
+    ).selectable;
+    const bSelectable = getWorkflowStatusInfo(
+      b.workflowStatus,
+      b.workflowCount,
+    ).selectable;
+
     if (aSelectable && !bSelectable) return -1;
     if (!aSelectable && bSelectable) return 1;
     return 0;
@@ -179,12 +237,13 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
               onClick={() => fetchRepositories()}
               disabled={isLoading}
             >
-              {isLoading ? 'Refreshing...' : 'Refresh'}
+              {isLoading ? "Refreshing..." : "Refresh"}
             </Button>
           </div>
         </CardTitle>
         <CardDescription>
-          Select repositories from your accessible organizations that have configured workflows
+          Select repositories from your accessible organizations that have
+          configured workflows
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -193,7 +252,7 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
           <div className="space-y-2">
             <label className="text-sm font-medium">Organization</label>
             <Select
-              value={selectedOrganization || ''}
+              value={selectedOrganization || ""}
               onValueChange={(value) => setSelectedOrganization(value)}
               disabled={isLoadingOrganizations || organizations.length === 0}
             >
@@ -201,14 +260,29 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
                 <SelectValue placeholder="Select an organization...">
                   {selectedOrganization && (
                     <div className="flex items-center gap-2">
-                      {organizations.find(org => org.login === selectedOrganization) && (
+                      {organizations.find(
+                        (org) => org.login === selectedOrganization,
+                      ) && (
                         <>
                           <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
-                            {organizations.find(org => org.login === selectedOrganization)?.login.charAt(0).toUpperCase()}
+                            {organizations
+                              .find((org) => org.login === selectedOrganization)
+                              ?.login.charAt(0)
+                              .toUpperCase()}
                           </div>
-                          <span>{organizations.find(org => org.login === selectedOrganization)?.login}</span>
+                          <span>
+                            {
+                              organizations.find(
+                                (org) => org.login === selectedOrganization,
+                              )?.login
+                            }
+                          </span>
                           <Badge variant="outline" className="text-xs">
-                            {organizations.find(org => org.login === selectedOrganization)?.type}
+                            {
+                              organizations.find(
+                                (org) => org.login === selectedOrganization,
+                              )?.type
+                            }
                           </Badge>
                         </>
                       )}
@@ -233,7 +307,9 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
               </SelectContent>
             </Select>
             {isLoadingOrganizations && (
-              <p className="text-xs text-muted-foreground">Loading organizations...</p>
+              <p className="text-xs text-muted-foreground">
+                Loading organizations...
+              </p>
             )}
           </div>
         </div>
@@ -243,11 +319,13 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
             <div className="flex items-start gap-2">
               <XCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-destructive text-sm font-medium">Failed to load repositories</p>
+                <p className="text-destructive text-sm font-medium">
+                  Failed to load repositories
+                </p>
                 <p className="text-destructive/80 text-xs mt-1">{error}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => fetchRepositories()}
                   className="mt-2"
                 >
@@ -263,7 +341,7 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
             <div className="inline-flex flex-col items-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
               <p className="text-foreground font-medium">
-                {loadingStatus || 'Loading repositories...'}
+                {loadingStatus || "Loading repositories..."}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Fetching accessible repositories
@@ -306,7 +384,8 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
               </div>
               {nameFilter && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Showing {filteredRepositories.length} of {availableRepositories.length} repositories
+                  Showing {filteredRepositories.length} of{" "}
+                  {availableRepositories.length} repositories
                 </p>
               )}
             </div>
@@ -316,29 +395,41 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="select-all"
-                  checked={
-                    (() => {
-                      const selectableRepos = filteredRepositories.filter(repo => 
-                        getWorkflowStatusInfo(repo.workflowStatus, repo.workflowCount).selectable
-                      );
-                      return selectableRepos.length > 0 && 
-                        selectableRepos.filter(repo => 
-                          selectedRepositories.some(selected => selected.id === repo.id)
-                        ).length === selectableRepos.length;
-                    })()
-                  }
+                  checked={(() => {
+                    const selectableRepos = filteredRepositories.filter(
+                      (repo) =>
+                        getWorkflowStatusInfo(
+                          repo.workflowStatus,
+                          repo.workflowCount,
+                        ).selectable,
+                    );
+                    return (
+                      selectableRepos.length > 0 &&
+                      selectableRepos.filter((repo) =>
+                        selectedRepositories.some(
+                          (selected) => selected.id === repo.id,
+                        ),
+                      ).length === selectableRepos.length
+                    );
+                  })()}
                   onCheckedChange={handleSelectAll}
                 />
-                <label 
-                  htmlFor="select-all" 
+                <label
+                  htmlFor="select-all"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Select All Workflow-Enabled ({(() => {
-                    const selectableRepos = filteredRepositories.filter(repo => 
-                      getWorkflowStatusInfo(repo.workflowStatus, repo.workflowCount).selectable
+                  Select All Workflow-Enabled (
+                  {(() => {
+                    const selectableRepos = filteredRepositories.filter(
+                      (repo) =>
+                        getWorkflowStatusInfo(
+                          repo.workflowStatus,
+                          repo.workflowCount,
+                        ).selectable,
                     );
                     return selectableRepos.length;
-                  })()} repositories{nameFilter ? ' (filtered)' : ''})
+                  })()}{" "}
+                  repositories{nameFilter ? " (filtered)" : ""})
                 </label>
               </div>
               {selectedRepositories.length > 0 && (
@@ -351,8 +442,12 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
             {/* Repository List */}
             {filteredRepositories.length === 0 && nameFilter ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-2">No repositories found matching &ldquo;{nameFilter}&rdquo;</p>
-                <p className="text-sm text-muted-foreground mb-4">Try adjusting your search terms</p>
+                <p className="text-muted-foreground mb-2">
+                  No repositories found matching &ldquo;{nameFilter}&rdquo;
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Try adjusting your search terms
+                </p>
                 <Button variant="outline" size="sm" onClick={clearFilter}>
                   Clear Filter
                 </Button>
@@ -360,7 +455,10 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {sortedRepositories.map((repository) => {
-                  const statusInfo = getWorkflowStatusInfo(repository.workflowStatus, repository.workflowCount);
+                  const statusInfo = getWorkflowStatusInfo(
+                    repository.workflowStatus,
+                    repository.workflowCount,
+                  );
                   const isSelectable = statusInfo.selectable;
                   const isSelected = isRepositorySelected(repository);
 
@@ -369,17 +467,21 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
                       key={repository.id}
                       className={cn(
                         "flex items-start space-x-3 p-3 rounded-lg border transition-colors",
-                        isSelectable 
-                          ? "hover:bg-muted/50 cursor-pointer" 
-                          : "opacity-50 bg-muted/20"
+                        isSelectable
+                          ? "hover:bg-muted/50 cursor-pointer"
+                          : "opacity-50 bg-muted/20",
                       )}
-                      onClick={() => isSelectable && handleRepositoryToggle(repository)}
+                      onClick={() =>
+                        isSelectable && handleRepositoryToggle(repository)
+                      }
                     >
                       <Checkbox
                         id={`repo-${repository.id}`}
                         checked={isSelected}
                         disabled={!isSelectable}
-                        onCheckedChange={() => isSelectable && handleRepositoryToggle(repository)}
+                        onCheckedChange={() =>
+                          isSelectable && handleRepositoryToggle(repository)
+                        }
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -387,10 +489,13 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
                             htmlFor={`repo-${repository.id}`}
                             className={cn(
                               "text-sm font-medium leading-none cursor-pointer",
-                              !isSelectable && "cursor-not-allowed"
+                              !isSelectable && "cursor-not-allowed",
                             )}
                           >
-                            <span className="text-muted-foreground text-xs font-normal">{repository.owner.login}/</span>{repository.name}
+                            <span className="text-muted-foreground text-xs font-normal">
+                              {repository.owner.login}/
+                            </span>
+                            {repository.name}
                           </label>
                           {repository.private && (
                             <Badge variant="secondary" className="text-xs">
@@ -399,14 +504,21 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
                           )}
                           <div className="flex items-center gap-1">
                             {statusInfo.icon}
-                            <span className={cn("text-xs", statusInfo.className)}>
+                            <span
+                              className={cn("text-xs", statusInfo.className)}
+                            >
                               {statusInfo.text}
                             </span>
-                            {repository.workflowCount !== undefined && repository.workflowCount > 0 && (
-                              <Badge variant="outline" className="text-xs ml-1">
-                                {repository.workflowCount} workflow{repository.workflowCount > 1 ? 's' : ''}
-                              </Badge>
-                            )}
+                            {repository.workflowCount !== undefined &&
+                              repository.workflowCount > 0 && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs ml-1"
+                                >
+                                  {repository.workflowCount} workflow
+                                  {repository.workflowCount > 1 ? "s" : ""}
+                                </Badge>
+                              )}
                           </div>
                         </div>
                         {repository.description && (
@@ -415,7 +527,12 @@ export function RepositorySelection({ onSelectionChange }: RepositorySelectionPr
                           </p>
                         )}
                         <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                          <span>Updated {new Date(repository.updated_at).toLocaleDateString()}</span>
+                          <span>
+                            Updated{" "}
+                            {new Date(
+                              repository.updated_at,
+                            ).toLocaleDateString()}
+                          </span>
                           <span>•</span>
                           <a
                             href={repository.html_url}

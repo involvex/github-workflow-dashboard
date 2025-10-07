@@ -1,4 +1,4 @@
-import { GitHubApiClient } from './github';
+import { GitHubApiClient } from "./github";
 
 export interface TokenValidationResult {
   isValid: boolean;
@@ -20,37 +20,39 @@ export interface TokenValidationResult {
  * @param token - GitHub personal access token
  * @returns Promise<TokenValidationResult> - Validation result with user info or error
  */
-export async function validateGitHubToken(token: string): Promise<TokenValidationResult> {
+export async function validateGitHubToken(
+  token: string,
+): Promise<TokenValidationResult> {
   if (!token || token.trim().length === 0) {
     return {
       isValid: false,
-      error: 'Token is required'
+      error: "Token is required",
     };
   }
 
   try {
     const client = new GitHubApiClient(token);
     const user = await client.validateToken();
-    
+
     return {
       isValid: true,
       user: {
         login: user.login,
         name: user.name,
-        avatar_url: user.avatar_url
-      }
+        avatar_url: user.avatar_url,
+      },
     };
   } catch (error) {
     if (error instanceof Error) {
       return {
         isValid: false,
-        error: error.message
+        error: error.message,
       };
     }
-    
+
     return {
       isValid: false,
-      error: 'Unknown error occurred during token validation'
+      error: "Unknown error occurred during token validation",
     };
   }
 }
@@ -61,7 +63,7 @@ export async function validateGitHubToken(token: string): Promise<TokenValidatio
  * @returns boolean - Whether the token format appears valid
  */
 export function isValidTokenFormat(token: string): boolean {
-  if (!token || typeof token !== 'string') {
+  if (!token || typeof token !== "string") {
     return false;
   }
 
@@ -69,16 +71,16 @@ export function isValidTokenFormat(token: string): boolean {
   // GitHub App tokens start with 'ghs_'
   // Classic tokens are 40 hex characters
   const trimmedToken = token.trim();
-  
+
   // Check for new format tokens
-  if (trimmedToken.startsWith('ghp_') || trimmedToken.startsWith('ghs_')) {
+  if (trimmedToken.startsWith("ghp_") || trimmedToken.startsWith("ghs_")) {
     return trimmedToken.length >= 40;
   }
-  
+
   // Check for classic format (40 hex characters)
   if (trimmedToken.length === 40 && /^[a-f0-9]{40}$/i.test(trimmedToken)) {
     return true;
   }
-  
+
   return false;
 }

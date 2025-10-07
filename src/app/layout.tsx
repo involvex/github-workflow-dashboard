@@ -21,14 +21,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased" style={{ fontFamily: 'system-ui, sans-serif' }}>
+      <body
+        className="antialiased"
+        style={{ fontFamily: "system-ui, sans-serif" }}
+      >
         <ThemeProvider>
           <DisplaySettingsProvider>
             <GitHubTokenProvider>
               <RepositorySelectionProvider>
-                <WorkflowProvider>
-                  {children}
-                </WorkflowProvider>
+                <WorkflowProvider>{children}</WorkflowProvider>
               </RepositorySelectionProvider>
             </GitHubTokenProvider>
           </DisplaySettingsProvider>

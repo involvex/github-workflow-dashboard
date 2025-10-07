@@ -75,7 +75,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -87,8 +87,7 @@
   .compact-card {
     @apply p-3 text-sm;
   }
-  
-  
+
   .compact-text {
     @apply text-xs leading-tight;
   }
