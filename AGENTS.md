@@ -23,19 +23,19 @@ This file provides guidance to AI coding agents (Claude Code, Gemini, Copilot, C
 >
 > **Shell: Windows PowerShell.** Use `Get-ChildItem` (not `ls -la`), `Remove-Item` (not `rm`), `Copy-Item` (not `cp`), `Move-Item` (not `mv`). Paths accept forward slashes in `bun`/`git`/`go` commands.
 
-| Task | Command |
-|------|---------|
-| Install dependencies | `bun install` |
-| Start dev server (http://localhost:3000) | `bun run dev` |
-| Production build | `bun run build` |
-| Start production server | `bun run start` |
-| Static export to `out/` + serve | `bun run build && bun run export` then `bunx serve out` |
-| Lint | `bun run lint` |
-| Type-check (no emit, via `tsc`) | `bunx tsc --noEmit` |
-| Run all Jest tests | `bun run test` / `bun test` only for Bun-native tests — this repo uses Jest, so prefer `bun run test` |
-| Jest watch mode | `bun run test:watch` |
-| Integration test (tsx) | `bun run test:integration` |
-| Single test file | `bunx jest <path/to/test.ts> --runInBand` |
+| Task                                     | Command                                                                                               |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Install dependencies                     | `bun install`                                                                                         |
+| Start dev server (http://localhost:3000) | `bun run dev`                                                                                         |
+| Production build                         | `bun run build`                                                                                       |
+| Start production server                  | `bun run start`                                                                                       |
+| Static export to `out/` + serve          | `bun run build && bun run export` then `bunx serve out`                                               |
+| Lint                                     | `bun run lint`                                                                                        |
+| Type-check (no emit, via `tsc`)          | `bunx tsc --noEmit`                                                                                   |
+| Run all Jest tests                       | `bun run test` / `bun test` only for Bun-native tests — this repo uses Jest, so prefer `bun run test` |
+| Jest watch mode                          | `bun run test:watch`                                                                                  |
+| Integration test (tsx)                   | `bun run test:integration`                                                                            |
+| Single test file                         | `bunx jest <path/to/test.ts> --runInBand`                                                             |
 
 ### Docker
 
@@ -54,18 +54,18 @@ No extra build config required — default Next.js preset works.
 
 ## 3. Technologies
 
-| Layer | Technology / Version |
-|-------|----------------------|
-| Framework | Next.js `15.5.9` (App Router, `src/app/`), React `19.1.0` + `react-dom` |
-| Language | TypeScript `^5` (`strict: true`, `target: ES2017`, path alias `@/*` → `./src/*`, `jsx: preserve`) |
-| Styling | Tailwind CSS `^3.4.17`, `tailwind-merge` + `clsx`, `tw-animate-css`, `autoprefixer` + `postcss` |
-| UI kit | shadcn/ui pattern (`src/components/ui/` + `components.json`) on Radix UI primitives (`checkbox`, `label`, `select`, `slot`, `switch`) |
-| Icons | `lucide-react` — use exclusively, no emoji / no other icon sets |
-| State | React Context providers only (no Redux/Zustand): `Theme` → `DisplaySettings` → `GitHubToken` → `RepositorySelection` → `Workflow` |
-| Data fetching | Custom `GitHubApiClient` (`src/lib/api/github.ts`) over GitHub REST API via `fetch` |
-| Testing | Jest `^30` + `jest-environment-jsdom` + `next/jest`, React Testing Library (`@testing-library/react`, `jest-dom`, `user-event`), `tsx` for integration tests |
-| Lint | ESLint `^9` + `eslint-config-next` (`next/core-web-vitals`, `next/typescript`), flat config in `eslint.config.mjs` |
-| Hosting | Vercel (demo), Docker / static export (`out/`) for self-host |
+| Layer         | Technology / Version                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework     | Next.js `15.5.9` (App Router, `src/app/`), React `19.1.0` + `react-dom`                                                                                      |
+| Language      | TypeScript `^5` (`strict: true`, `target: ES2017`, path alias `@/*` → `./src/*`, `jsx: preserve`)                                                            |
+| Styling       | Tailwind CSS `^3.4.17`, `tailwind-merge` + `clsx`, `tw-animate-css`, `autoprefixer` + `postcss`                                                              |
+| UI kit        | shadcn/ui pattern (`src/components/ui/` + `components.json`) on Radix UI primitives (`checkbox`, `label`, `select`, `slot`, `switch`)                        |
+| Icons         | `lucide-react` — use exclusively, no emoji / no other icon sets                                                                                              |
+| State         | React Context providers only (no Redux/Zustand): `Theme` → `DisplaySettings` → `GitHubToken` → `RepositorySelection` → `Workflow`                            |
+| Data fetching | Custom `GitHubApiClient` (`src/lib/api/github.ts`) over GitHub REST API via `fetch`                                                                          |
+| Testing       | Jest `^30` + `jest-environment-jsdom` + `next/jest`, React Testing Library (`@testing-library/react`, `jest-dom`, `user-event`), `tsx` for integration tests |
+| Lint          | ESLint `^9` + `eslint-config-next` (`next/core-web-vitals`, `next/typescript`), flat config in `eslint.config.mjs`                                           |
+| Hosting       | Vercel (demo), Docker / static export (`out/`) for self-host                                                                                                 |
 
 ### Key paths
 

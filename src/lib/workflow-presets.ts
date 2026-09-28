@@ -1,18 +1,19 @@
 export interface WorkflowPreset {
-  id: string;
-  name: string;
-  description: string;
-  filename: string;
-  content: string;
+	id: string
+	name: string
+	description: string
+	filename: string
+	content: string
 }
 
 export const WORKFLOW_PRESETS: WorkflowPreset[] = [
-  {
-    id: 'npm-release',
-    name: 'NPM Release',
-    description: 'Automates publishing a new version to NPM on new GitHub releases.',
-    filename: 'npm-release.yml',
-    content: `name: NPM Release
+	{
+		id: 'npm-release',
+		name: 'NPM Release',
+		description:
+			'Automates publishing a new version to NPM on new GitHub releases.',
+		filename: 'npm-release.yml',
+		content: `name: NPM Release
 
 on:
   release:
@@ -31,14 +32,15 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
-`
-  },
-  {
-    id: 'auto-tag',
-    name: 'Auto Tag',
-    description: 'Automatically creates a new tag when changes are pushed to the main branch.',
-    filename: 'auto-tag.yml',
-    content: `name: Auto Tag
+`,
+	},
+	{
+		id: 'auto-tag',
+		name: 'Auto Tag',
+		description:
+			'Automatically creates a new tag when changes are pushed to the main branch.',
+		filename: 'auto-tag.yml',
+		content: `name: Auto Tag
 
 on:
   push:
@@ -55,14 +57,14 @@ jobs:
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
-`
-  },
-  {
-    id: 'github-pages',
-    name: 'GitHub Pages Deploy',
-    description: 'Builds and deploys a static site to GitHub Pages.',
-    filename: 'github-pages.yml',
-    content: `name: Deploy to GitHub Pages
+`,
+	},
+	{
+		id: 'github-pages',
+		name: 'GitHub Pages Deploy',
+		description: 'Builds and deploys a static site to GitHub Pages.',
+		filename: 'github-pages.yml',
+		content: `name: Deploy to GitHub Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -111,6 +113,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
-`
-  }
-];
+`,
+	},
+]
