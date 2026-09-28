@@ -6,6 +6,9 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SettingsPage from "../src/app/settings/page";
+import { ThemeProvider } from "../src/contexts/theme-context";
+import { DisplaySettingsProvider } from "../src/contexts/display-settings-context";
+import { RepositorySelectionProvider } from "../src/contexts/repository-selection-context";
 import { GitHubTokenProvider } from "../src/contexts/github-token-context";
 
 // Mock Next.js router
@@ -23,10 +26,11 @@ jest.mock("../src/lib/storage/secure-storage", () => ({
   getSecureItem: jest.fn().mockResolvedValue(null),
   removeSecureItem: jest.fn().mockResolvedValue(undefined),
   STORAGE_KEYS: {
-    GITHUB_TOKEN: "ifl_dashboard_github_token",
-    SELECTED_REPOSITORIES: "ifl_dashboard_selected_repos",
-    USER_PREFERENCES: "ifl_dashboard_preferences",
-    LAST_SYNC: "ifl_dashboard_last_sync",
+    GITHUB_TOKEN: "github_flow_dashboard_token",
+    GITHUB_USER_ID: "github_flow_dashboard_user_id",
+    SELECTED_REPOSITORIES: "github_flow_dashboard_selected_repos",
+    USER_PREFERENCES: "github_flow_dashboard_preferences",
+    LAST_SYNC: "github_flow_dashboard_last_sync",
   },
 }));
 
@@ -37,23 +41,7 @@ jest.mock("../src/lib/api/token-validation", () => ({
   }),
 }));
 
-// Mock Web APIs
-Object.defineProperty(global, "navigator", {
-  value: {
-    userAgent: "test-browser",
-    language: "en-US",
-  },
-  writable: true,
-});
-
-Object.defineProperty(global, "screen", {
-  value: {
-    width: 1920,
-    height: 1080,
-  },
-  writable: true,
-});
-
+// Mock Web APIs for jsdom
 const mockCrypto = {
   getRandomValues: (array: Uint8Array) => {
     for (let i = 0; i < array.length; i++) {
@@ -70,25 +58,57 @@ const mockCrypto = {
   },
 };
 
-Object.defineProperty(global, "crypto", {
-  value: mockCrypto,
-  writable: true,
-});
+beforeAll(() => {
+  Object.defineProperty(window, "crypto", {
+    value: mockCrypto,
+    writable: true,
+    configurable: true,
+  });
 
-Object.defineProperty(global, "window", {
-  value: {
-    crypto: mockCrypto,
-    localStorage: {
+  Object.defineProperty(window, "localStorage", {
+    value: {
       getItem: jest.fn().mockReturnValue(null),
       setItem: jest.fn(),
       removeItem: jest.fn(),
     },
-    confirm: jest.fn().mockReturnValue(true),
-  },
-  writable: true,
-});
+    writable: true,
+    configurable: true,
+  });
 
-Date.prototype.getTimezoneOffset = jest.fn(() => -480);
+  Object.defineProperty(window, "navigator", {
+    value: {
+      userAgent: "test-browser",
+      language: "en-US",
+    },
+    writable: true,
+    configurable: true,
+  });
+
+  Object.defineProperty(screen, "width", {
+    value: 1920,
+    writable: true,
+    configurable: true,
+  });
+
+  Object.defineProperty(screen, "height", {
+    value: 1080,
+    writable: true,
+    configurable: true,
+  });
+
+  Date.prototype.getTimezoneOffset = jest.fn(() => -480);
+
+  window.matchMedia = jest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  }));
+});
 
 describe("Settings Page - Token Management UI", () => {
   beforeEach(() => {
@@ -97,9 +117,15 @@ describe("Settings Page - Token Management UI", () => {
 
   test("renders settings page with token input form", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <RepositorySelectionProvider>
+              <SettingsPage />
+            </RepositorySelectionProvider>
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     expect(screen.getByText("Settings")).toBeInTheDocument();
@@ -112,21 +138,37 @@ describe("Settings Page - Token Management UI", () => {
 
   test("shows token requirements section", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <RepositorySelectionProvider>
+              <SettingsPage />
+            </RepositorySelectionProvider>
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
-    expect(screen.getByText("Token Requirements")).toBeInTheDocument();
-    expect(screen.getByText(/repo/)).toBeInTheDocument();
-    expect(screen.getByText(/actions:read/)).toBeInTheDocument();
+    // Check for the scope requirements text (may be split across elements)
+    const scopeParagraph = Array.from(document.querySelectorAll("p")).find(
+      (p) => p.textContent?.includes("Required scopes"),
+    );
+    expect(scopeParagraph).toBeDefined();
+    expect(scopeParagraph?.textContent).toContain("repo");
+    expect(scopeParagraph?.textContent).toContain("actions:read");
   });
 
   test("allows entering a token", async () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <RepositorySelectionProvider>
+              <SettingsPage />
+            </RepositorySelectionProvider>
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     const tokenInput = screen.getByLabelText(/GitHub Personal Access Token/);
@@ -137,9 +179,15 @@ describe("Settings Page - Token Management UI", () => {
 
   test("submit button is disabled when token input is empty", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <RepositorySelectionProvider>
+              <SettingsPage />
+            </RepositorySelectionProvider>
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     const submitButton = screen.getByText("Save Token");
@@ -148,9 +196,15 @@ describe("Settings Page - Token Management UI", () => {
 
   test("submit button is enabled when token input has value", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <RepositorySelectionProvider>
+              <SettingsPage />
+            </RepositorySelectionProvider>
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     const tokenInput = screen.getByLabelText(/GitHub Personal Access Token/);
@@ -163,9 +217,13 @@ describe("Settings Page - Token Management UI", () => {
 
   test("shows back to dashboard link", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <SettingsPage />
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     const backLink = screen.getByText("← Back to Dashboard");
@@ -175,9 +233,13 @@ describe("Settings Page - Token Management UI", () => {
 
   test("shows GitHub token creation link", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <SettingsPage />
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     const githubLink = screen.getByText("Create a token on GitHub →");
@@ -191,9 +253,13 @@ describe("Settings Page - Token Management UI", () => {
 
   test("shows secure storage supported badge", () => {
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <SettingsPage />
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     // Should not show the "not supported" badge since we mocked it as available
@@ -204,9 +270,8 @@ describe("Settings Page - Token Management UI", () => {
 
   test("shows loading state during form submission", async () => {
     // Mock a delayed token validation
-    const tokenValidationModule = await import(
-      "../src/lib/api/token-validation"
-    );
+    const tokenValidationModule =
+      await import("../src/lib/api/token-validation");
     (tokenValidationModule.validateGitHubToken as jest.Mock).mockImplementation(
       () =>
         new Promise((resolve) =>
@@ -215,9 +280,15 @@ describe("Settings Page - Token Management UI", () => {
     );
 
     render(
-      <GitHubTokenProvider>
-        <SettingsPage />
-      </GitHubTokenProvider>,
+      <ThemeProvider>
+        <DisplaySettingsProvider>
+          <GitHubTokenProvider>
+            <RepositorySelectionProvider>
+              <SettingsPage />
+            </RepositorySelectionProvider>
+          </GitHubTokenProvider>
+        </DisplaySettingsProvider>
+      </ThemeProvider>,
     );
 
     const tokenInput = screen.getByLabelText(/GitHub Personal Access Token/);

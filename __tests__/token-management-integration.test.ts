@@ -22,7 +22,7 @@ const mockCrypto = {
     return array;
   },
   subtle: {
-    digest: async (_algorithm: string, _data: ArrayBuffer) => {
+    digest: async () => {
       // Mock SHA-256 hash
       return new ArrayBuffer(32);
     },
@@ -62,93 +62,64 @@ const mockLocalStorage = {
 };
 
 // Setup global mocks
-Object.defineProperty(globalThis, "crypto", {
-  value: mockCrypto,
-  writable: true,
-});
+beforeAll(() => {
+  Object.defineProperty(window, "crypto", {
+    value: mockCrypto,
+    writable: true,
+    configurable: true,
+  });
 
-Object.defineProperty(globalThis, "localStorage", {
-  value: mockLocalStorage,
-  writable: true,
-});
+  Object.defineProperty(window, "localStorage", {
+    value: mockLocalStorage,
+    writable: true,
+    configurable: true,
+  });
 
-Object.defineProperty(globalThis, "window", {
-  value: {
-    crypto: mockCrypto,
-    localStorage: mockLocalStorage,
-  },
-  writable: true,
-});
+  Object.defineProperty(window, "navigator", {
+    value: {
+      userAgent: "test-browser",
+      language: "en-US",
+    },
+    writable: true,
+    configurable: true,
+  });
 
-Object.defineProperty(globalThis, "navigator", {
-  value: {
-    userAgent: "test-browser",
-    language: "en-US",
-  },
-  writable: true,
-});
+  Object.defineProperty(window, "screen", {
+    value: {
+      width: 1920,
+      height: 1080,
+    },
+    writable: true,
+    configurable: true,
+  });
 
-Object.defineProperty(globalThis, "screen", {
-  value: {
-    width: 1920,
-    height: 1080,
-  },
-  writable: true,
-});
-
-// Mock TextEncoder/TextDecoder
-Object.defineProperty(globalThis, "TextEncoder", {
-  value: class {
+  // Mock TextEncoder/TextDecoder
+  globalThis.TextEncoder = class {
     encode(input: string) {
       return new Uint8Array(Buffer.from(input, "utf8"));
     }
-  },
-});
+  } as unknown as typeof TextEncoder;
 
-Object.defineProperty(globalThis, "TextDecoder", {
-  value: class {
+  globalThis.TextDecoder = class {
     decode(input: Uint8Array) {
       return Buffer.from(input).toString("utf8");
     }
-  },
+  } as unknown as typeof TextDecoder;
 });
 
-// Mock Date.prototype.getTimezoneOffset
-Date.prototype.getTimezoneOffset = () => -480;
+describe("Token Management System Integration", () => {
+  beforeEach(() => {
+    mockLocalStorage.clear();
+  });
 
-async function runTests() {
-  console.log("🧪 Starting Token Management System Integration Tests\n");
-
-  let passed = 0;
-  let failed = 0;
-
-  function test(name: string, fn: () => Promise<void> | void) {
-    return async () => {
-      try {
-        console.log(`⏳ Running: ${name}`);
-        await fn();
-        console.log(`✅ PASS: ${name}`);
-        passed++;
-      } catch (error) {
-        console.error(`❌ FAIL: ${name}`);
-        console.error(
-          `   Error: ${error instanceof Error ? error.message : error}`,
-        );
-        failed++;
-      }
-    };
-  }
-
-  // Test 1: Secure Storage Availability
-  await test("Secure storage availability check", async () => {
+  test("Secure storage availability check", async () => {
     const isAvailable = isSecureStorageAvailable();
     if (!isAvailable) {
       throw new Error("Secure storage should be available in test environment");
     }
-  })();
+  });
 
-  // Test 2: Secure Storage Basic Operations
-  await test("Secure storage - set and get item", async () => {
+  test("Secure storage - set and get item", async () => {
     const testKey = STORAGE_KEYS.GITHUB_TOKEN;
     const testValue = "test-token-12345";
 
@@ -158,10 +129,9 @@ async function runTests() {
     if (retrievedValue !== testValue) {
       throw new Error(`Expected ${testValue}, got ${retrievedValue}`);
     }
-  })();
+  });
 
-  // Test 3: Secure Storage Remove Operation
-  await test("Secure storage - remove item", async () => {
+  test("Secure storage - remove item", async () => {
     const testKey = STORAGE_KEYS.GITHUB_TOKEN;
 
     removeSecureItem(testKey);
@@ -170,12 +140,12 @@ async function runTests() {
     if (retrievedValue !== null) {
       throw new Error(`Expected null, got ${retrievedValue}`);
     }
-  })();
+  });
 
-  // Test 4: Storage Keys Constants
-  await test("Storage keys are properly defined", () => {
+  test("Storage keys are properly defined", () => {
     const expectedKeys = [
       "GITHUB_TOKEN",
+      "GITHUB_USER_ID",
       "SELECTED_REPOSITORIES",
       "USER_PREFERENCES",
       "LAST_SYNC",
@@ -187,10 +157,9 @@ async function runTests() {
         throw new Error(`Missing storage key: ${key}`);
       }
     }
-  })();
+  });
 
-  // Test 5: Token Validation Structure
-  await test("Token validation returns proper structure", async () => {
+  test("Token validation returns proper structure", async () => {
     // Mock a fake token since we don't have a real one
     const fakeToken = "ghp_" + "x".repeat(36);
 
@@ -207,8 +176,6 @@ async function runTests() {
           "Validation result should have isValid boolean property",
         );
       }
-
-      console.log(`   Token validation returned: isValid=${result.isValid}`);
     } catch (error) {
       // Network errors are expected in test environment, just verify structure
       if (
@@ -218,17 +185,14 @@ async function runTests() {
           error.message.includes("ENOTFOUND") ||
           error.message.includes("connect"))
       ) {
-        console.log(
-          "   Network error expected in test environment (this is normal)",
-        );
+        // Network error expected in test environment (this is normal)
       } else {
         throw error;
       }
     }
-  })();
+  });
 
-  // Test 6: GitHub API Client Structure
-  await test("GitHub API client is properly structured", () => {
+  test("GitHub API client is properly structured", () => {
     const client = new GitHubApiClient("fake-token");
 
     // Check that required methods exist
@@ -247,10 +211,9 @@ async function runTests() {
         throw new Error(`GitHub API client missing method: ${method}`);
       }
     }
-  })();
+  });
 
-  // Test 7: Device Fingerprinting Consistency
-  await test("Device fingerprinting produces consistent results", async () => {
+  test("Device fingerprinting produces consistent results", async () => {
     // Store and retrieve the same token twice to test consistency
     const testKey = STORAGE_KEYS.USER_PREFERENCES;
     const testValue = "consistent-test-value";
@@ -266,10 +229,9 @@ async function runTests() {
         "Device fingerprinting should produce consistent results",
       );
     }
-  })();
+  });
 
-  // Test 8: Multiple Storage Keys
-  await test("Multiple storage keys work independently", async () => {
+  test("Multiple storage keys work independently", async () => {
     const testData = {
       [STORAGE_KEYS.GITHUB_TOKEN]: "token-value",
       [STORAGE_KEYS.SELECTED_REPOSITORIES]: "repos-value",
@@ -290,10 +252,9 @@ async function runTests() {
         );
       }
     }
-  })();
+  });
 
-  // Test 9: Error Handling
-  await test("Error handling for invalid data", async () => {
+  test("Error handling for invalid data", async () => {
     // Manually corrupt localStorage data
     mockLocalStorage.setItem(STORAGE_KEYS.GITHUB_TOKEN, "invalid-json-data");
 
@@ -307,10 +268,9 @@ async function runTests() {
     if (stored !== null) {
       throw new Error("Corrupted data should be cleaned up");
     }
-  })();
+  });
 
-  // Test 10: Performance Check
-  await test("Performance - rapid storage operations", async () => {
+  test("Performance - rapid storage operations", async () => {
     const start = Date.now();
 
     for (let i = 0; i < 10; i++) {
@@ -321,40 +281,9 @@ async function runTests() {
     const end = Date.now();
     const duration = end - start;
 
-    console.log(`   10 encrypt/decrypt cycles took ${duration}ms`);
-
     if (duration > 5000) {
       // 5 seconds seems reasonable for 10 cycles
       throw new Error(`Performance too slow: ${duration}ms for 10 operations`);
     }
-  })();
-
-  // Summary
-  console.log("\n📊 Test Results:");
-  console.log(`✅ Passed: ${passed}`);
-  console.log(`❌ Failed: ${failed}`);
-  console.log(
-    `📈 Success Rate: ${Math.round((passed / (passed + failed)) * 100)}%`,
-  );
-
-  if (failed > 0) {
-    console.log(
-      "\n❌ Some tests failed. Please fix the issues before proceeding.",
-    );
-    process.exit(1);
-  } else {
-    console.log(
-      "\n🎉 All tests passed! Token management system is working correctly.",
-    );
-    console.log(
-      "\n🚀 Ready to proceed to the next step: Repository Selection Interface",
-    );
-  }
-}
-
-// Run tests if this file is executed directly
-if (require.main === module) {
-  runTests().catch(console.error);
-}
-
-export { runTests };
+  });
+});

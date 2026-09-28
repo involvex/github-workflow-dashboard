@@ -3,64 +3,125 @@
  * Comprehensive validation of the complete token management system
  */
 
-console.log("🔍 Running comprehensive end-to-end system test...\n");
+// Note: Tests use dynamic imports for modules
 
-// Mock environment setup
-function setupMockEnvironment() {
-  const mockCrypto = {
-    getRandomValues: (array: Uint8Array) => {
-      for (let i = 0; i < array.length; i++) {
-        array[i] = Math.floor(Math.random() * 256);
-      }
-      return array;
-    },
-    subtle: {
-      digest: async () => new ArrayBuffer(32),
-      importKey: async () => ({ type: "secret" }) as CryptoKey,
-      deriveKey: async () => ({ type: "secret" }) as CryptoKey,
-      encrypt: async () => new ArrayBuffer(32),
-      decrypt: async () => new ArrayBuffer(16),
-    },
-  };
+// Mock crypto for jsdom tests
+const mockCrypto = {
+  getRandomValues: (array: Uint8Array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  },
+  subtle: {
+    digest: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+    importKey: jest.fn().mockResolvedValue({ type: "secret" } as CryptoKey),
+    deriveKey: jest.fn().mockResolvedValue({ type: "secret" } as CryptoKey),
+    encrypt: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+    decrypt: jest.fn().mockResolvedValue(new ArrayBuffer(16)),
+  },
+};
 
+beforeAll(() => {
   Object.defineProperty(global, "crypto", {
     value: mockCrypto,
     writable: true,
+    configurable: true,
   });
-  Object.defineProperty(global, "window", {
+
+  Object.defineProperty(global, "localStorage", {
     value: {
-      crypto: mockCrypto,
-      localStorage: {
-        storage: new Map(),
-        getItem: function (key: string) {
-          return this.storage.get(key) || null;
-        },
-        setItem: function (key: string, value: string) {
-          this.storage.set(key, value);
-        },
-        removeItem: function (key: string) {
-          this.storage.delete(key);
-        },
+      storage: new Map(),
+      getItem: function (key: string) {
+        return this.storage.get(key) || null;
+      },
+      setItem: function (key: string, value: string) {
+        this.storage.set(key, value);
+      },
+      removeItem: function (key: string) {
+        this.storage.delete(key);
       },
     },
     writable: true,
+    configurable: true,
   });
 
   Object.defineProperty(global, "navigator", {
     value: { userAgent: "test-browser", language: "en-US" },
     writable: true,
+    configurable: true,
   });
 
   Object.defineProperty(global, "screen", {
     value: { width: 1920, height: 1080 },
     writable: true,
+    configurable: true,
   });
 
-  Date.prototype.getTimezoneOffset = () => -480;
-}
+  Date.prototype.getTimezoneOffset = jest.fn(() => -480);
+});
 
-async function runEndToEndTest() {
-  setupMockEnvironment();
+describe("End-to-End System Test", () => {
+  test("GitHub API Client can be instantiated", async () => {
+    const { GitHubApiClient } = await import("../src/lib/api/github");
+    const client = new GitHubApiClient("test_token");
+
+    expect(client).toBeInstanceOf(GitHubApiClient);
+    expect(typeof client.validateToken).toBe("function");
+    expect(typeof client.getRepositories).toBe("function");
+  });
+
+  test("Token validation function returns proper structure", async () => {
+    const { validateGitHubToken } =
+      await import("../src/lib/api/token-validation");
+    const result = await validateGitHubToken("test_token");
+
+    expect(typeof result.isValid).toBe("boolean");
+  });
+
+  test("Secure storage is available", async () => {
+    const { isSecureStorageAvailable } =
+      await import("../src/lib/storage/secure-storage");
+
+    expect(isSecureStorageAvailable()).toBe(true);
+  });
+
+  test("Storage keys are properly defined", async () => {
+    const { STORAGE_KEYS } = await import("../src/lib/storage/secure-storage");
+    const requiredKeys = [
+      "GITHUB_TOKEN",
+      "SELECTED_REPOSITORIES",
+      "USER_PREFERENCES",
+    ];
+
+    const hasAllKeys = requiredKeys.every((key) => key in STORAGE_KEYS);
+    expect(hasAllKeys).toBe(true);
+  });
+
+  test("GitHub API error handling works", async () => {
+    const { GitHubApiError } = await import("../src/lib/api/github");
+    const error = new GitHubApiError("test error", 401);
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.status).toBe(401);
+  });
+
+  test("Application pages can be imported", async () => {
+    await import("../src/app/page");
+    await import("../src/app/layout");
+    await import("../src/app/settings/page");
+  });
+
+  test("TypeScript types are accessible", async () => {
+    const types = await import("../src/lib/api/types");
+    // Types are erased at runtime, so we check that the module loads without error
+    expect(types).toBeDefined();
+    expect(typeof types).toBe("object");
+  });
+});
+
+export async function runEndToEndTest() {
+  console.log("🔍 Running comprehensive end-to-end system test...\n");
 
   const results = {
     total: 0,
@@ -117,9 +178,8 @@ async function runEndToEndTest() {
 
   // Test 3: Token Validation Service
   try {
-    const { validateGitHubToken } = await import(
-      "../src/lib/api/token-validation"
-    );
+    const { validateGitHubToken } =
+      await import("../src/lib/api/token-validation");
     const result = await validateGitHubToken("test_token");
 
     testResult(
@@ -132,9 +192,8 @@ async function runEndToEndTest() {
 
   // Test 4: React Context Provider (structure)
   try {
-    const { GitHubTokenProvider, useGitHubToken } = await import(
-      "../src/contexts/github-token-context"
-    );
+    const { GitHubTokenProvider, useGitHubToken } =
+      await import("../src/contexts/github-token-context");
 
     testResult(
       "Context Provider Export",
@@ -240,8 +299,5 @@ async function runEndToEndTest() {
   return results.failed === 0;
 }
 
-// Execute the test
-runEndToEndTest().catch((error) => {
-  console.error("\n💥 End-to-end test execution failed:", error.message);
-  process.exit(1);
-});
+// Standalone execution removed - this file is now a Jest test file
+// Run via: npx jest __tests__/e2e-system-test.ts

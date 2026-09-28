@@ -1,6 +1,5 @@
-import "@testing-library/jest-dom";
-import { TextEncoder, TextDecoder } from "util";
+require("@testing-library/jest-dom");
+const { TextEncoder, TextDecoder } = require("util");
 
-// Add TextEncoder/TextDecoder to global scope for Web Crypto API support
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;

@@ -27,52 +27,66 @@ const mockLocalStorage = {
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
+  clear: jest.fn(),
 };
 
-// Setup global mocks
-beforeAll(() => {
-  // Mock navigator for device fingerprinting
-  Object.defineProperty(global, "navigator", {
-    value: {
-      userAgent: "test-agent",
-      language: "en-US",
-    },
-    writable: true,
-  });
-
-  // Mock screen for device fingerprinting
-  Object.defineProperty(global, "screen", {
-    value: {
-      width: 1920,
-      height: 1080,
-    },
-    writable: true,
-  });
-
-  // Mock Date.prototype.getTimezoneOffset
-  const originalGetTimezoneOffset = Date.prototype.getTimezoneOffset;
-  Date.prototype.getTimezoneOffset = jest.fn(() => -480); // PST timezone
-
-  // Mock Intl for consistent device fingerprinting
-  global.Intl = {
-    DateTimeFormat: () => ({
-      resolvedOptions: () => ({
-        timeZone: "America/Los_Angeles",
-      }),
-    }),
-  } as unknown as typeof Intl;
-
-  // Setup globals
-  global.crypto = mockCrypto as unknown as Crypto;
-  global.localStorage = mockLocalStorage as unknown as Storage;
-
-  // Cleanup function
-  afterAll(() => {
-    Date.prototype.getTimezoneOffset = originalGetTimezoneOffset;
-  });
-});
-
 describe("Secure Storage", () => {
+  beforeAll(() => {
+    // Mock navigator for device fingerprinting
+    Object.defineProperty(global, "navigator", {
+      value: {
+        userAgent: "test-agent",
+        language: "en-US",
+      },
+      writable: true,
+    });
+
+    // Mock screen for device fingerprinting
+    Object.defineProperty(global, "screen", {
+      value: {
+        width: 1920,
+        height: 1080,
+      },
+      writable: true,
+    });
+
+    // Mock crypto for Web Crypto API
+    Object.defineProperty(global, "crypto", {
+      value: mockCrypto,
+      writable: true,
+    });
+
+    Object.defineProperty(global, "localStorage", {
+      value: mockLocalStorage,
+      writable: true,
+    });
+
+    // Mock TextEncoder/TextDecoder for jsdom
+    global.TextEncoder = class {
+      encode(input: string) {
+        return new Uint8Array(Buffer.from(input, "utf8"));
+      }
+    };
+
+    global.TextDecoder = class {
+      decode(input: Uint8Array) {
+        return Buffer.from(input).toString("utf8");
+      }
+    };
+
+    // Mock Date.prototype.getTimezoneOffset
+    Date.prototype.getTimezoneOffset = jest.fn(() => -480); // PST timezone
+
+    // Mock Intl for consistent device fingerprinting
+    global.Intl = {
+      DateTimeFormat: () => ({
+        resolvedOptions: () => ({
+          timeZone: "America/Los_Angeles",
+        }),
+      }),
+    } as unknown as typeof Intl;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -287,10 +301,11 @@ describe("Secure Storage", () => {
   describe("STORAGE_KEYS", () => {
     it("should have all required keys", () => {
       expect(STORAGE_KEYS).toEqual({
-        GITHUB_TOKEN: "ifl_dashboard_github_token",
-        SELECTED_REPOSITORIES: "ifl_dashboard_selected_repos",
-        USER_PREFERENCES: "ifl_dashboard_preferences",
-        LAST_SYNC: "ifl_dashboard_last_sync",
+        GITHUB_TOKEN: "github_flow_dashboard_token",
+        GITHUB_USER_ID: "github_flow_dashboard_user_id",
+        SELECTED_REPOSITORIES: "github_flow_dashboard_selected_repos",
+        USER_PREFERENCES: "github_flow_dashboard_preferences",
+        LAST_SYNC: "github_flow_dashboard_last_sync",
       });
     });
   });

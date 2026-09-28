@@ -5,20 +5,51 @@
  * the infinite loop issue has been resolved.
  */
 
-console.log("=== Repository Loading Flow Test ===\n");
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-async function testRepositoryLoadingFlow() {
+describe("Repository Loading Flow", () => {
+  test("should check context file for useCallback usage", async () => {
+    const contextFile = await fs.promises.readFile(
+      path.join(process.cwd(), "src/contexts/repository-selection-context.tsx"),
+      "utf8",
+    );
+
+    const hasUseCallback = contextFile.includes("useCallback");
+    const hasFetchRepositories = contextFile.includes("fetchRepositories");
+    const hasToggleRepository = contextFile.includes("toggleRepository");
+
+    expect(hasUseCallback).toBe(true);
+    expect(hasFetchRepositories).toBe(true);
+    expect(hasToggleRepository).toBe(true);
+  });
+
+  test("should check component file for error handling", async () => {
+    const componentFile = await fs.promises.readFile(
+      path.join(process.cwd(), "src/components/repository-selection.tsx"),
+      "utf8",
+    );
+
+    const hasErrorHandling =
+      componentFile.includes("error") && componentFile.includes("XCircle");
+
+    expect(hasErrorHandling).toBe(true);
+  });
+});
+
+export async function testRepositoryLoadingFlow() {
+  console.log("=== Repository Loading Flow Test ===\n");
+
   try {
     console.log("1. Testing repository loading fixes...");
 
     console.log("\n2. Testing context hook stability...");
 
-    // Check if the context functions are properly memoized
     console.log("   - Checking useCallback implementations...");
 
     const fs = await import("fs");
     const contextFile = await fs.promises.readFile(
-      "/Users/cheney.yan/code/team/pw-team-workspace/workspaces/ifl-workflow-dashboard-app/src/contexts/repository-selection-context.tsx",
+      path.join(process.cwd(), "src/contexts/repository-selection-context.tsx"),
       "utf8",
     );
 
@@ -47,7 +78,7 @@ async function testRepositoryLoadingFlow() {
     console.log("\n3. Testing component error handling...");
 
     const componentFile = await fs.promises.readFile(
-      "/Users/cheney.yan/code/team/pw-team-workspace/workspaces/ifl-workflow-dashboard-app/src/components/repository-selection.tsx",
+      path.join(process.cwd(), "src/components/repository-selection.tsx"),
       "utf8",
     );
 
@@ -83,10 +114,10 @@ async function testRepositoryLoadingFlow() {
     console.log("3. Enter a valid GitHub token");
     console.log("4. Verify repositories load without getting stuck");
     console.log("5. Check browser console for debug logs");
-  } catch (error) {
-    console.error("❌ Flow test encountered an error:", error);
+  } catch (_error) {
+    console.error("❌ Flow test encountered an error:", _error);
   }
 }
 
-// Run the test
-testRepositoryLoadingFlow();
+// Standalone execution removed - this file is now a Jest test file
+// Run via: npx jest __tests__/repository-loading-flow.test.ts

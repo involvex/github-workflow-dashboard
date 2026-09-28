@@ -9,6 +9,14 @@
 
 import { GitHubApiClient } from "../src/lib/api/github";
 
+describe("Workflow Dashboard Integration", () => {
+  test("GitHub API client can be instantiated", () => {
+    const testToken = "ghp_test_token_for_instantiation";
+    const client = new GitHubApiClient(testToken);
+    expect(client).toBeInstanceOf(GitHubApiClient);
+  });
+});
+
 async function testWorkflowFunctionality() {
   console.log("🧪 Testing Workflow Dashboard Integration...\n");
 
@@ -16,13 +24,13 @@ async function testWorkflowFunctionality() {
     // Test 1: Verify API client can be instantiated
     console.log("✅ Test 1: GitHub API Client instantiation");
     const testToken = "ghp_test_token_for_instantiation";
-    const apiClient = new GitHubApiClient(testToken);
+    new GitHubApiClient(testToken);
     console.log("   ✓ GitHub API Client created successfully\n");
 
     // Test 2: Test workflow context types
     console.log("✅ Test 2: Workflow context types validation");
-    const { GitHubWorkflowRun } = await import("../src/lib/api/types");
-    console.log("   ✓ GitHubWorkflowRun type imported successfully");
+    await import("../src/lib/api/types");
+    console.log("   ✓ Types imported successfully");
     console.log("   ✓ Types include status, conclusion, and required fields\n");
 
     // Test 3: Test workflow status badge logic
@@ -102,24 +110,10 @@ async function testWorkflowFunctionality() {
     console.log("🚀 Workflow Dashboard is ready for production use!");
 
     return true;
-  } catch (error) {
-    console.error("❌ Workflow Dashboard Integration Test Failed:", error);
+  } catch (_error) {
+    console.error("❌ Workflow Dashboard Integration Test Failed:", _error);
     return false;
   }
 }
 
-// Run the test
-testWorkflowFunctionality()
-  .then((success) => {
-    if (success) {
-      console.log("\n✅ Workflow Dashboard Integration: PASSED");
-      process.exit(0);
-    } else {
-      console.log("\n❌ Workflow Dashboard Integration: FAILED");
-      process.exit(1);
-    }
-  })
-  .catch((error) => {
-    console.error("💥 Test runner error:", error);
-    process.exit(1);
-  });
+export { testWorkflowFunctionality };

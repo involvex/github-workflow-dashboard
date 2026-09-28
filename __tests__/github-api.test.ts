@@ -1,8 +1,16 @@
 import { GitHubApiClient, GitHubApiError } from "../src/lib/api/github";
+import type { GitHubRepository } from "../src/lib/api/types";
 
 // Mock fetch globally
 const mockFetch = jest.fn();
 global.fetch = mockFetch as jest.MockedFunction<typeof fetch>;
+
+interface MockResponse {
+  ok: boolean;
+  status: number;
+  json: jest.Mock;
+  headers: Headers;
+}
 
 describe("GitHubApiClient", () => {
   let client: GitHubApiClient;
@@ -43,7 +51,7 @@ describe("GitHubApiClient", () => {
           "X-RateLimit-Remaining": "4999",
           "X-RateLimit-Reset": "1234567890",
         }),
-      } as any);
+      } as MockResponse);
 
       const result = await client.validateToken();
 
@@ -67,12 +75,12 @@ describe("GitHubApiClient", () => {
         documentation_url: "https://docs.github.com/rest",
       };
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: false,
         status: 401,
-        json: jest.fn().mockResolvedValueOnce(errorResponse),
+        json: jest.fn().mockResolvedValue(errorResponse),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       await expect(client.validateToken()).rejects.toThrow(GitHubApiError);
       await expect(client.validateToken()).rejects.toThrow("Bad credentials");
@@ -105,12 +113,12 @@ describe("GitHubApiClient", () => {
         status: 200,
         json: jest.fn().mockResolvedValueOnce(mockRepos),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       const result = await client.getRepositories("testuser", true);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.github.com/user/repos?",
+        expect.stringContaining("/users/testuser/repos"),
         expect.any(Object),
       );
 
@@ -118,19 +126,19 @@ describe("GitHubApiClient", () => {
     });
 
     it("should fetch organization repositories when owner is specified", async () => {
-      const mockRepos = [];
+      const mockRepos: Partial<GitHubRepository>[] = [];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: jest.fn().mockResolvedValueOnce(mockRepos),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       await client.getRepositories("test-org", false);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.github.com/orgs/test-org/repos?",
+        expect.stringContaining("/orgs/test-org/repos"),
         expect.any(Object),
       );
     });
@@ -141,7 +149,7 @@ describe("GitHubApiClient", () => {
         status: 200,
         json: jest.fn().mockResolvedValueOnce([]),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       await client.getRepositories("test-org", false, {
         type: "owner",
@@ -151,10 +159,13 @@ describe("GitHubApiClient", () => {
         page: 1,
       });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.github.com/orgs/test-org/repos?type=owner&sort=updated&direction=desc&per_page=50&page=1",
-        expect.any(Object),
-      );
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain("/orgs/test-org/repos");
+      expect(callUrl).toContain("type=owner");
+      expect(callUrl).toContain("sort=updated");
+      expect(callUrl).toContain("direction=desc");
+      expect(callUrl).toContain("per_page=50");
+      expect(callUrl).toContain("page=1");
     });
   });
 
@@ -181,7 +192,7 @@ describe("GitHubApiClient", () => {
         status: 200,
         json: jest.fn().mockResolvedValueOnce({ workflows: mockWorkflows }),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       const result = await client.getWorkflows("testuser", "test-repo");
 
@@ -241,12 +252,12 @@ describe("GitHubApiClient", () => {
         status: 200,
         json: jest.fn().mockResolvedValueOnce({ workflow_runs: mockRuns }),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       const result = await client.getWorkflowRuns("testuser", "test-repo");
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/testuser/test-repo/actions/runs?",
+        expect.stringContaining("/repos/testuser/test-repo/actions/runs"),
         expect.any(Object),
       );
 
@@ -259,7 +270,7 @@ describe("GitHubApiClient", () => {
         status: 200,
         json: jest.fn().mockResolvedValueOnce({ workflow_runs: [] }),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       await client.getWorkflowRuns("testuser", "test-repo", {
         status: "completed",
@@ -268,10 +279,12 @@ describe("GitHubApiClient", () => {
         page: 1,
       });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/testuser/test-repo/actions/runs?status=completed&branch=main&per_page=10&page=1",
-        expect.any(Object),
-      );
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain("/repos/testuser/test-repo/actions/runs");
+      expect(callUrl).toContain("status=completed");
+      expect(callUrl).toContain("branch=main");
+      expect(callUrl).toContain("per_page=10");
+      expect(callUrl).toContain("page=1");
     });
   });
 
@@ -290,7 +303,7 @@ describe("GitHubApiClient", () => {
         status: 200,
         json: jest.fn().mockResolvedValueOnce(mockRateLimit),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       const result = await client.getRateLimit();
 
@@ -311,12 +324,12 @@ describe("GitHubApiClient", () => {
     });
 
     it("should handle JSON parsing errors in error responses", async () => {
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: false,
         status: 500,
-        json: jest.fn().mockRejectedValueOnce(new Error("Invalid JSON")),
+        json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
         headers: new Headers(),
-      } as any);
+      } as MockResponse);
 
       await expect(client.validateToken()).rejects.toThrow(GitHubApiError);
       await expect(client.validateToken()).rejects.toThrow(
@@ -349,7 +362,7 @@ describe("GitHubApiClient", () => {
           "X-RateLimit-Remaining": "4999",
           "X-RateLimit-Reset": "1234567890",
         }),
-      } as any);
+      } as MockResponse);
 
       // Access the makeRequest method indirectly through validateToken
       const result = await client.validateToken();

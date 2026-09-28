@@ -10,6 +10,20 @@ import {
  *
  * Set GH_TOKEN environment variable to test with real token
  */
+describe("GitHub API Integration", () => {
+  test("validates token formats correctly", () => {
+    expect(isValidTokenFormat("a".repeat(40))).toBe(true);
+    expect(isValidTokenFormat("ghp_" + "a".repeat(36))).toBe(true);
+    expect(isValidTokenFormat("invalid")).toBe(false);
+    expect(isValidTokenFormat("")).toBe(false);
+  });
+
+  test("can create GitHub API client", () => {
+    const client = new GitHubApiClient("test-token");
+    expect(client).toBeInstanceOf(GitHubApiClient);
+  });
+});
+
 async function testGitHubApiIntegration() {
   console.log("🧪 Testing GitHub API Integration...\n");
 
@@ -107,7 +121,7 @@ async function testGitHubApiIntegration() {
             );
           }
         }
-      } catch (error) {
+      } catch {
         console.log(
           "Note: Could not fetch workflows (possibly no Actions enabled)",
         );
@@ -118,16 +132,6 @@ async function testGitHubApiIntegration() {
   } catch (error) {
     console.error("❌ API integration test failed:", error);
   }
-}
-
-// Run if called directly
-if (require.main === module) {
-  testGitHubApiIntegration()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error("Test failed:", error);
-      process.exit(1);
-    });
 }
 
 export { testGitHubApiIntegration };

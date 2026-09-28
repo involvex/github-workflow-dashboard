@@ -3,137 +3,70 @@
  * Quick verification of key components
  */
 
-console.log("🚀 Starting system validation...\n");
+import * as path from "node:path";
+import * as fs from "node:fs";
 
-async function validateSystem() {
-  let passedTests = 0;
-  let totalTests = 0;
-
-  function test(name: string, pass: boolean, note?: string) {
-    totalTests++;
-    if (pass) {
-      passedTests++;
-      console.log(`✅ ${name}${note ? ` (${note})` : ""}`);
-    } else {
-      console.log(`❌ ${name}${note ? ` - ${note}` : ""}`);
-    }
-  }
-
-  // Test imports and basic structure
-  try {
+describe("System Validation", () => {
+  test("Secure Storage Module should exist", async () => {
     const secureStorage = await import("../src/lib/storage/secure-storage");
-    test("Secure Storage Module", !!secureStorage.setSecureItem);
-    test("Storage Keys Available", !!secureStorage.STORAGE_KEYS);
-    test(
-      "Storage Availability Check",
-      typeof secureStorage.isSecureStorageAvailable === "function",
-    );
-  } catch (error) {
-    test("Secure Storage Module", false, (error as Error).message);
-  }
+    expect(secureStorage.setSecureItem).toBeDefined();
+    expect(secureStorage.STORAGE_KEYS).toBeDefined();
+    expect(typeof secureStorage.isSecureStorageAvailable).toBe("function");
+  });
 
-  try {
+  test("GitHub API Client should exist", async () => {
     const githubApi = await import("../src/lib/api/github");
-    test("GitHub API Client", !!githubApi.GitHubApiClient);
-    test("GitHub API Error", !!githubApi.GitHubApiError);
-  } catch (error) {
-    test("GitHub API Module", false, (error as Error).message);
-  }
+    expect(githubApi.GitHubApiClient).toBeDefined();
+    expect(githubApi.GitHubApiError).toBeDefined();
+  });
 
-  try {
+  test("Token Validation should exist", async () => {
     const tokenValidation = await import("../src/lib/api/token-validation");
-    test(
-      "Token Validation",
-      typeof tokenValidation.validateGitHubToken === "function",
-    );
-  } catch (error) {
-    test("Token Validation", false, (error as Error).message);
-  }
+    expect(typeof tokenValidation.validateGitHubToken).toBe("function");
+  });
 
-  try {
+  test("TypeScript Types should be accessible", async () => {
     const types = await import("../src/lib/api/types");
-    test("TypeScript Types", typeof types === "object");
-  } catch (error) {
-    test("TypeScript Types", false, (error as Error).message);
-  }
+    expect(typeof types).toBe("object");
+  });
 
-  try {
+  test("GitHub Token Context should exist", async () => {
     const context = await import("../src/contexts/github-token-context");
-    test("GitHub Token Context", !!context.GitHubTokenProvider);
-  } catch (error) {
-    test("GitHub Token Context", false, (error as Error).message);
-  }
+    expect(context.GitHubTokenProvider).toBeDefined();
+  });
 
-  try {
+  test("Main Page Component should exist", async () => {
     await import("../src/app/page");
-    test("Main Page Component", true);
-  } catch (error) {
-    test("Main Page Component", false, (error as Error).message);
-  }
+    expect(true).toBe(true);
+  });
 
-  try {
+  test("Settings Page Component should exist", async () => {
     await import("../src/app/settings/page");
-    test("Settings Page Component", true);
-  } catch (error) {
-    test("Settings Page Component", false, (error as Error).message);
-  }
+    expect(true).toBe(true);
+  });
 
-  try {
+  test("Layout Component should exist", async () => {
     await import("../src/app/layout");
-    test("Layout Component", true);
-  } catch (error) {
-    test("Layout Component", false, (error as Error).message);
-  }
+    expect(true).toBe(true);
+  });
 
-  // Check file existence (simplified)
-  const fs = await import("fs");
-  const path = await import("path");
+  test("Critical Files Present", () => {
+    const projectRoot = process.cwd();
+    const criticalFiles = [
+      "package.json",
+      "next.config.js",
+      "tsconfig.json",
+      "src/app/page.tsx",
+      "src/contexts/github-token-context.tsx",
+      "src/lib/storage/secure-storage.ts",
+    ];
 
-  const projectRoot =
-    "/Users/cheney.yan/code/team/pw-team-workspace/workspaces/ifl-workflow-dashboard-app";
+    let filesExist = 0;
+    for (const file of criticalFiles) {
+      const exists = fs.existsSync(path.join(projectRoot, file));
+      if (exists) filesExist++;
+    }
 
-  const criticalFiles = [
-    "package.json",
-    "next.config.js",
-    "tsconfig.json",
-    "src/app/page.tsx",
-    "src/contexts/github-token-context.tsx",
-    "src/lib/storage/secure-storage.ts",
-  ];
-
-  let filesExist = 0;
-  for (const file of criticalFiles) {
-    const exists = fs.existsSync(path.join(projectRoot, file));
-    if (exists) filesExist++;
-  }
-
-  test(
-    "Critical Files Present",
-    filesExist === criticalFiles.length,
-    `${filesExist}/${criticalFiles.length}`,
-  );
-
-  console.log(`\n📊 VALIDATION SUMMARY:`);
-  console.log(`✅ Passed: ${passedTests}/${totalTests}`);
-  console.log(
-    `📈 Success Rate: ${((passedTests / totalTests) * 100).toFixed(1)}%`,
-  );
-
-  if (passedTests === totalTests) {
-    console.log("\n🎉 System validation passed!");
-    console.log("💫 Github Workflow Dashboard is ready for the next phase.");
-    console.log("🚀 Token management system is fully functional.");
-    console.log(
-      "➡️  Ready to proceed to Task 4: Repository Selection Interface",
-    );
-  } else {
-    console.log(`\n⚠️ ${totalTests - passedTests} validation(s) failed.`);
-  }
-
-  return passedTests === totalTests;
-}
-
-validateSystem().catch((error) => {
-  console.error("❌ Validation failed:", error);
-  process.exit(1);
+    expect(filesExist).toBe(criticalFiles.length);
+  });
 });
