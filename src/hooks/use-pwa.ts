@@ -2,53 +2,57 @@
 
 import {useEffect, useState} from 'react'
 
-declare global {
-	interface BeforeInstallPromptEvent extends Event {
-		prompt: () => Promise<void>
-		nodeResponse: Promise<{outcome: 'accepted' | 'dismissed'}>
-	}
-}
-
 export function useServiceWorkerRegistration() {
 	const [registration, setRegistration] =
 		useState<ServiceWorkerRegistration | null>(null)
 	const [isReady, setIsReady] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
 		if (typeof window === 'undefined' || !window.navigator?.serviceWorker) {
 			return
 		}
 
-		const handleServiceWorkerRegistration = async () => {
+		const registerSW = async () => {
 			try {
-				const registration = await window.navigator.serviceWorker.ready
+				const registration = await window.navigator.serviceWorker.register(
+					'/sw.js',
+					{
+						scope: '/',
+					},
+				)
 				setRegistration(registration)
 				setIsReady(true)
-			} catch (error) {
-				console.error('Service worker registration failed:', error)
+
+				// Check for updates
+				registration.addEventListener('updatefound', () => {
+					const newWorker = registration.installing
+					if (newWorker) {
+						newWorker.addEventListener('statechange', () => {
+							if (
+								newWorker.state === 'installed' &&
+								navigator.serviceWorker.controller
+							) {
+								// New version available, could show update prompt
+							}
+						})
+					}
+				})
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Unknown error')
 			}
 		}
 
 		if (window.navigator.serviceWorker.controller) {
-			handleServiceWorkerRegistration()
+			// Already have a controller, try to update
+			registerSW()
 		} else {
-			window.addEventListener(
-				'serviceWorkerReady',
-				handleServiceWorkerRegistration as EventListener,
-			)
-			window.addEventListener('load', handleServiceWorkerRegistration)
-		}
-
-		return () => {
-			window.removeEventListener(
-				'serviceWorkerReady',
-				handleServiceWorkerRegistration as EventListener,
-			)
-			window.removeEventListener('load', handleServiceWorkerRegistration)
+			// No controller yet, register
+			registerSW()
 		}
 	}, [])
 
-	return {registration, isReady}
+	return {registration, isReady, error}
 }
 
 export function useBeforeInstallPrompt() {
@@ -79,7 +83,7 @@ export function useBeforeInstallPrompt() {
 		if (!promptDeferred) return
 
 		promptDeferred.prompt()
-		const {outcome} = await promptDeferred.nodeResponse
+		const {outcome} = await promptDeferred.userChoice
 		setIsInstallable(false)
 
 		if (outcome === 'accepted') {
@@ -90,4 +94,11 @@ export function useBeforeInstallPrompt() {
 	}
 
 	return {isInstallable, promptInstall}
+}
+
+declare global {
+	interface BeforeInstallPromptEvent extends Event {
+		prompt: () => Promise<void>
+		userChoice: Promise<{outcome: 'accepted' | 'dismissed'}>
+	}
 }
