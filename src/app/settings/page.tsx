@@ -26,8 +26,10 @@ import {
 	useDisplaySettings,
 } from '@/contexts/display-settings-context'
 import {useGitHubToken} from '@/contexts/github-token-context'
+import {useNotifications} from '@/contexts/notification-context'
 import {useTheme} from '@/contexts/theme-context'
-import {Monitor, Moon, Sun, Zap} from 'lucide-react'
+import {useNetworkStatus} from '@/hooks/use-network-status'
+import {Download, Monitor, Moon, Sun, Wifi, Zap} from 'lucide-react'
 import Link from 'next/link'
 import {useState} from 'react'
 
@@ -378,6 +380,64 @@ export default function SettingsPage() {
 									statuses
 								</p>
 							</div>
+						</CardContent>
+					</Card>
+
+					{/* PWA Settings */}
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Wifi className="w-5 h-5" />
+								PWA Settings
+							</CardTitle>
+							<CardDescription>
+								Configure Progressive Web App features
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="flex items-center justify-between">
+								<div className="space-y-0.5">
+									<Label>Online Status</Label>
+									<p className="text-sm text-muted-foreground">
+										{useNetworkStatus().isOnline ? 'Connected' : 'Offline'}
+									</p>
+								</div>
+							</div>
+
+							{/* Notification Settings */}
+							<div className="flex items-center justify-between">
+								<div className="space-y-0.5">
+									<Label>Desktop Notifications</Label>
+									<p className="text-sm text-muted-foreground">
+										Receive notifications for workflow failures and completions
+									</p>
+								</div>
+								<Switch
+									checked={useNotifications().notificationsEnabled}
+									onCheckedChange={useNotifications().setNotificationsEnabled}
+								/>
+							</div>
+
+							{/* Install Button */}
+							<div className="pt-2 border-t border-border">
+								<Button
+									onClick={() => {
+										alert(
+											'PWA is ready for installation! Look for the install prompt in your browser or use the + icon on your phone.',
+										)
+									}}
+									variant="outline"
+									className="w-full"
+								>
+									<Download className="w-4 h-4 mr-2" />
+									Install PWA
+								</Button>
+							</div>
+
+							<p className="text-xs text-muted-foreground">
+								Install the dashboard for faster access and offline support.
+								Push notifications are available for workflow events.
+							</p>
 						</CardContent>
 					</Card>
 

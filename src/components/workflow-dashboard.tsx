@@ -1,5 +1,6 @@
 'use client'
 
+import {OfflineIndicator} from '@/components/pwa/offline-indicator'
 import {Button} from '@/components/ui/button'
 import {
 	Card,
@@ -499,7 +500,9 @@ export function WorkflowDashboard() {
 	}
 
 	return (
-		<div>
+		<div className="relative">
+			<OfflineIndicator />
+
 			{/* Unified header with title and controls */}
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
 				<div>

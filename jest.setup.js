@@ -1,5 +1,5 @@
-require('@testing-library/jest-dom')
-const {TextEncoder, TextDecoder} = require('util')
+import '@testing-library/jest-dom'
+import {TextDecoder, TextEncoder} from 'util'
 
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
