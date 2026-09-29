@@ -66,13 +66,17 @@ describe('Secure Storage', () => {
 			encode(input: string) {
 				return new Uint8Array(Buffer.from(input, 'utf8'))
 			}
-		}
+			encoding = 'utf-8'
+		} as unknown as typeof TextEncoder
 
 		global.TextDecoder = class {
 			decode(input: Uint8Array) {
 				return Buffer.from(input).toString('utf8')
 			}
-		}
+			encoding = 'utf-8'
+			fatal = false
+			ignoreBOM = false
+		} as unknown as typeof TextDecoder
 
 		// Mock Date.prototype.getTimezoneOffset
 		Date.prototype.getTimezoneOffset = jest.fn(() => -480) // PST timezone
